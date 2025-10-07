@@ -4,7 +4,7 @@ import { DateTime } from "luxon"
 
 import { uuidToNumber } from "./utils"
 
-let lastestRefreshTokenAt = 0
+//let lastestRefreshTokenAt = 0
 
 export const fetchServerGroup = async (): Promise<ServerGroupResponse> => {
   const kmNodes: Record<string, any> = await SharedClient().call("common:getNodes")
@@ -69,7 +69,6 @@ export const fetchMonitor = async (server_id: number): Promise<MonitorResponse> 
   }
   const serverName = km_nodes[uuid]?.name || String(server_id)
 
-  // 新接口：直接通过 RPC 获取监控记录
   const km_monitors: any = await SharedClient().call("common:getRecords", {
     type: "ping",
     uuid: uuid,
@@ -80,7 +79,6 @@ export const fetchMonitor = async (server_id: number): Promise<MonitorResponse> 
   // 将 km_monitors 转换为 NezhaMonitor[]
   const seriesByTask = new Map<number, NezhaMonitor>()
 
-  // 兼容你提供的新结构：{ tasks: [], records: [], ... }
   if (km_monitors && Array.isArray(km_monitors.tasks) && Array.isArray(km_monitors.records)) {
     for (const task of km_monitors.tasks) {
       seriesByTask.set(task.id, {
@@ -141,7 +139,7 @@ export const fetchMonitor = async (server_id: number): Promise<MonitorResponse> 
 }
 // TODO
 export const fetchService = async (): Promise<ServiceResponse> => {
-  const response = await SharedClient().call("common:getNodes")
+  const response = await SharedClient().call("NoSuchMethod")
   const data = await response.json()
   if (data.error) {
     throw new Error(data.error)
