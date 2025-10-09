@@ -108,7 +108,7 @@
     <link rel="icon" type="image/png" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Komari Monitor</title>
-    <meta name="description" content="A simple server monitor tool.">
+    <meta name="description" content="A simple server monitor tool." />
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="hsl(0 0% 98%)" />
@@ -123,5 +123,104 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // 移除GPU卡片
+      ;(function () {
+        "use strict"
+
+        const containerSelector =
+          "#root > div > main > div.mx-auto.w-full.max-w-5xl.px-0.flex.flex-col.gap-4.server-info > div:nth-child(3) > section > div:nth-child(2)"
+        const pRelativeSelector = "div > section > div.flex.items-center.justify-between > section.flex.flex-col.items-center.gap-2 > p"
+        
+        const TAG = "[remove-gpu-if-present]"
+
+        function processOne(container) {
+          try {
+            if (!container) return false
+            const p = container.querySelector(pRelativeSelector) || container.querySelector("p")
+            if (!p) {
+              return false
+            }
+            const text = (p.textContent || "").trim()
+            console.info(TAG, "找到 <p> 文本：", text)
+            if (/gpu/i.test(text)) {
+              console.info(TAG, '匹配到 "GPU"，将删除容器：', container)
+              container.remove()
+              return true
+            }
+            return false
+          } catch (err) {
+            console.error(TAG, "处理容器时出错：", err)
+            return false
+          }
+        }
+
+        function findAndProcess() {
+          try {
+            const container = document.querySelector(containerSelector)
+            if (!container) {
+              // not found
+              return false
+            }
+            return processOne(container)
+          } catch (err) {
+            return false
+          }
+        }
+
+        // 1) 尝试一次性查找（页面可能已加载）
+        findAndProcess()
+
+        // 2) 使用 MutationObserver 监视 body 的变化（在单页应用中非常有用）
+        const mo = new MutationObserver((mutations) => {
+          // 尽量快速返回以降低开销
+          if (findAndProcess()) {
+            // 删除成功后可以选择断开 observer（如果只想处理一次）
+            // mo.disconnect();
+          }
+        })
+        mo.observe(document.body, { childList: true, subtree: true })
+
+        // 3) 监听单页应用的路由变化（覆盖 pushState/replaceState 并监听 popstate）
+        ;(function hijackHistoryEvents() {
+          try {
+            const originalPush = history.pushState
+            const originalReplace = history.replaceState
+            history.pushState = function () {
+              const ret = originalPush.apply(this, arguments)
+              window.dispatchEvent(new Event("locationchange"))
+              return ret
+            }
+            history.replaceState = function () {
+              const ret = originalReplace.apply(this, arguments)
+              window.dispatchEvent(new Event("locationchange"))
+              return ret
+            }
+            window.addEventListener("popstate", function () {
+              window.dispatchEvent(new Event("locationchange"))
+            })
+            window.addEventListener("locationchange", function () {
+              // 微延时，让框架先渲染 DOM
+              setTimeout(findAndProcess, 150)
+            })
+          } catch (err) {
+          }
+        })()
+
+        // 4) 额外的轮询保险（如果 MutationObserver 未捕获到）
+        const maxTries = 30
+        let tries = 0
+        const intervalId = setInterval(() => {
+          tries++
+          if (findAndProcess() || tries >= maxTries) {
+            clearInterval(intervalId)
+            if (tries >= maxTries) {
+              console.info(TAG, "达到轮询上限，停止轮询。")
+            }
+          }
+        }, 500)
+
+      })()
+    </script>
   </body>
 </html>
