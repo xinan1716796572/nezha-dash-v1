@@ -19,7 +19,6 @@ const Footer: React.FC = () => {
       <section className="flex flex-col">
         <section className="mt-1 flex items-center sm:flex-row flex-col justify-between gap-2 text-[13px] font-light tracking-tight text-neutral-600/50 dark:text-neutral-300/50 server-footer-name">
           <div className="flex items-center gap-1">
-            <p>Powered by <a href={"https://github.com/komari-monitor/komari"} target="_blank">Komari Monitor</a></p>
           </div>
           <div className="server-footer-theme flex flex-col items-center sm:items-end">
             <p className="mt-1 text-[13px] font-light tracking-tight text-neutral-600/50 dark:text-neutral-300/50">
@@ -27,11 +26,6 @@ const Footer: React.FC = () => {
                 {isMac ? <span className="text-xs">⌘</span> : "Ctrl "}K
               </kbd>
             </p>
-            <section>
-              {t("footer.themeBy")}
-              <a href={"https://github.com/Akizon77/nezha-dash-v1"} target="_blank">
-                nezha-dash
-              </a>
             </section>
           </div>
         </section>
