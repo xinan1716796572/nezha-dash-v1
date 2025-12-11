@@ -25,6 +25,7 @@ const Footer: React.FC = () => {
         </section>
       </section>
     </footer>
-)
+  ) // 补全缺失的 return 语句闭合括号
+} // 补全组件函数的闭合大括号
 
 export default Footer
