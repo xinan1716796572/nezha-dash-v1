@@ -19,7 +19,6 @@ const Footer: React.FC = () => {
               </kbd>
             </p>
             <section>
-              {t("footer.themeBy")}
             </section>
           </div>
         </section>
